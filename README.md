@@ -70,11 +70,11 @@ Each notebook uses `%load_ext autoreload` / `%autoreload 2` to pick up changes t
 **Project structure**
 ```
 src/                    Production modules
-  almgren_chriss.py      Closed-form optimal trajectory
-  simulator.py            Monte Carlo simulator with antithetic variates
-  benchmarks.py            TWAP / VWAP schedules
-  data_loader.py            yfinance price/volume/volatility fetch
-  frontier.py                 Efficient frontier construction and plotting
+  almgren_chriss.py     Closed-form optimal trajectory
+  simulator.py          Monte Carlo simulator with antithetic variates
+  benchmarks.py         TWAP / VWAP schedules
+  data_loader.py        yfinance price/volume/volatility fetch
+  frontier.py           Efficient frontier construction and plotting
 notebooks/              Exploration and analysis only, no duplicated function defs
   01_exploration.ipynb
   02_yfinance.ipynb
