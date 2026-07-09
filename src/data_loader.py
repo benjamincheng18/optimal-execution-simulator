@@ -16,7 +16,7 @@ def fetch_raw_data(ticker, interval, start, end):
     -------
     pd.DataFrame with OHLCV columns, datetime index
     """
-    data = yf.download(tickers=ticker, start=start, end=end, interval=interval)[["Close", "Volume"]]
+    data = yf.download(ticker, start, end, interval)[["Close", "Volume"]]
     data.columns = data.columns.get_level_values(0)
     return data
 

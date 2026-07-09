@@ -23,14 +23,15 @@ def frontier_construction(X, T, N, sigma, eta, gamma, lambda_range, n_sims, S0):
     results = []
     
     for lam in lambda_range:
-        trajectory = almgren_chriss_trajectory(X=X, T=T, N=N, lam=lam, sigma=sigma, eta=eta, gamma=gamma)
+        trajectory = almgren_chriss_trajectory(X, T, N, lam, sigma, eta, gamma)
         
         shares_traded = trajectory["shares_traded"].dropna().values
         
-        mc_results = monte_carlo_simulation(S0=S0, shares_traded=shares_traded, sigma=sigma, eta=eta, gamma=gamma, tau=T/N, n_sims=n_sims)
+        IS_raw, IS_paired = monte_carlo_simulation(S0, shares_traded, sigma, eta, gamma, T/N, n_sims)
+        mean_cost = IS_paired['IS_paired'].mean()
+        variance_cost = IS_raw['IS_raw'].var()
         
-        results.append((lam, mc_results["IS"].mean(), mc_results["IS"].var()))
-        pass
+        results.append((lam, mean_cost, variance_cost))
     
     return pd.DataFrame(results, columns=['lambda', 'mean_cost', 'variance_cost'])
 

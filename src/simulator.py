@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-def simulate_one_path(S0, shares_traded, sigma, eta, gamma, tau):
+def simulate_one_path(S0, shares_traded, sigma, eta, gamma, tau, eps):
     """
     Simulate one realized execution path and compute implementation shortfall.
     
@@ -19,15 +19,12 @@ def simulate_one_path(S0, shares_traded, sigma, eta, gamma, tau):
     IS : float, total implementation shortfall in dollars for this simulated path
     """
     n_periods = len(shares_traded)
-    
-    shocks = np.random.normal(size=n_periods)
-    
     mid_price = np.zeros(n_periods)
     for k in range(n_periods):
         if k == 0:
             mid_price[k] = S0
         else:
-            mid_price[k] = mid_price[k-1] + sigma*np.sqrt(tau)*shocks[k] - gamma*shares_traded[k]
+            mid_price[k] = mid_price[k-1] + sigma*np.sqrt(tau)*eps[k] - gamma*shares_traded[k]
             
 
     execution_price = mid_price - eta * (shares_traded / tau)
@@ -39,17 +36,30 @@ def simulate_one_path(S0, shares_traded, sigma, eta, gamma, tau):
 
 def monte_carlo_simulation(S0, shares_traded, sigma, eta, gamma, tau, n_sims):
     """
-    Run simulate_one_path n_sims times and collect implementation shortfall results.
+    Run Monte Carlo simulation with antithetic variates.
+    
+    Parameters
+    ----------
+    S0 : float, arrival price
+    shares_traded : np.array, shares traded per period
+    sigma, eta, gamma, tau : model parameters (see simulate_one_path)
+    n_sims : int, total simulated paths (n_sims/2 antithetic pairs)
     
     Returns
     -------
-    pd.DataFrame with one column 'IS', one row per simulation
+    IS_raw : pd.DataFrame, all individual IS values, use for variance
+    IS_paired : pd.DataFrame, antithetic pair averages, use for mean
     """
-    # TODO: loop n_sims times, call simulate_one_path each time, collect results
-    # results = ...
-    results = []
-    for i in range(n_sims):
-        IS = simulate_one_path(S0, shares_traded, sigma, eta, gamma, tau)
-        results.append(IS)
+    n_periods = len(shares_traded)
+    all_IS = []       # raw individual samples, for variance
+    paired_IS = []     # antithetic pair averages, for mean
 
-    return pd.DataFrame({'IS': results})
+    for i in range(n_sims // 2):
+        eps = np.random.normal(size=n_periods)
+        IS_1 = simulate_one_path(S0, shares_traded, sigma, eta, gamma, tau, eps)
+        IS_2 = simulate_one_path(S0, shares_traded, sigma, eta, gamma, tau, -eps)
+        
+        all_IS.extend([IS_1, IS_2])
+        paired_IS.append((IS_1 + IS_2) / 2)
+
+    return pd.DataFrame({'IS_raw': all_IS}), pd.DataFrame({'IS_paired': paired_IS})
